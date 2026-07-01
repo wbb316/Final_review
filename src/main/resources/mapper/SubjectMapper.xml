@@ -5,10 +5,13 @@
         <id property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="createTime" column="create_time"/>
+        <result property="questionCount" column="question_count"/>
     </resultMap>
 
     <select id="findAll" resultMap="BaseResultMap">
-        SELECT id, name, create_time FROM subject ORDER BY id
+        SELECT s.id, s.name, s.create_time,
+               (SELECT COUNT(*) FROM question q WHERE q.subject_id = s.id) AS question_count
+        FROM subject s ORDER BY s.id
     </select>
 
     <select id="findById" resultMap="BaseResultMap">

@@ -20,7 +20,8 @@
           :class="{ selected: selectedSubject?.id === subject.id }"
           @click="selectedSubject = subject"
         >
-          {{ subject.name }}
+          <div class="subject-name">{{ subject.name }}</div>
+          <div class="subject-count">{{ subject.questionCount ?? 0 }} 道题</div>
         </div>
       </div>
     </section>
@@ -74,6 +75,10 @@ function startExam() {
 </script>
 
 <style scoped>
+.home {
+  max-width: 500px;
+  margin: 0 auto;
+}
 .header {
   display: flex;
   justify-content: space-between;
@@ -103,21 +108,31 @@ function startExam() {
   font-size: 18px;
   color: #333;
   margin-bottom: 15px;
+  text-align: center;
 }
 .subject-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 .subject-card {
-  padding: 20px;
+  padding: 20px 16px;
   background: #fff;
   border: 2px solid #e8e8e8;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   text-align: center;
-  font-size: 16px;
   transition: all 0.2s;
+}
+.subject-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 6px;
+}
+.subject-count {
+  font-size: 13px;
+  color: #999;
 }
 .subject-card:hover {
   border-color: #409eff;
@@ -133,6 +148,7 @@ function startExam() {
 .count-input {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 .count-input button {

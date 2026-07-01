@@ -8,4 +8,5 @@ public class Subject {
     private Long id;
     private String name;
     private LocalDateTime createTime;
+    private Integer questionCount;
 }
