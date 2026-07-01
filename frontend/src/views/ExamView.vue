@@ -110,10 +110,14 @@ function selectAnswer(answer) {
   if (answered.value) return
   selectedAnswer.value = answer
   answered.value = true
+  const q = questions.value[currentIndex.value]
   answers.value.push({
-    questionId: questions.value[currentIndex.value].id,
+    questionId: q.id,
+    content: q.content,
+    type: q.type,
     selected: answer,
-    correct: answer === questions.value[currentIndex.value].answer
+    correctAnswer: q.answer,
+    correct: answer === q.answer
   })
 }
 
@@ -124,6 +128,7 @@ function goNext() {
     selectedAnswer.value = null
   } else {
     const correctCount = answers.value.filter(a => a.correct).length
+    sessionStorage.setItem('examAnswers', JSON.stringify(answers.value))
     router.push({
       name: 'Result',
       query: {
