@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.final_review.mapper.SubjectMapper">
+    <resultMap id="BaseResultMap" type="cn.itcast.final_review.entity.Subject">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT id, name, create_time FROM subject ORDER BY id
+    </select>
+
+    <select id="findById" resultMap="BaseResultMap">
+        SELECT id, name, create_time FROM subject WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO subject (name) VALUES (#{name})
+    </insert>
+
+    <update id="update">
+        UPDATE subject SET name = #{name} WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM subject WHERE id = #{id}
+    </delete>
+</mapper>
