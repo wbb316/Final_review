@@ -10,9 +10,9 @@
       <input
         v-model="newName"
         placeholder="输入科目名称"
-        @keyup.enter="addSubject"
+        @keyup.enter="handleAddSubject"
       />
-      <button @click="addSubject">添加</button>
+      <button @click="handleAddSubject">添加</button>
     </div>
 
     <!-- 列表 -->
@@ -68,7 +68,7 @@ async function loadSubjects() {
   subjects.value = res.data
 }
 
-async function addSubject() {
+async function handleAddSubject() {
   const name = newName.value.trim()
   if (!name) return
   await addSubject(name)
