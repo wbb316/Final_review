@@ -1,0 +1,1 @@
+import{a as e}from"./index-DhXgJQ-f.js";const u="/api/subjects";function r(){return e.get(u)}function s(t){return e.post(u,{name:t})}function c(t,n){return e.put(`${u}/${t}`,{name:n})}function o(t){return e.delete(`${u}/${t}`)}export{s as a,o as d,r as g,c as u};
