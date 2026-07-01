@@ -22,7 +22,8 @@
         <div class="form-group">
           <label>题型</label>
           <select v-model="form.type">
-            <option value="SELECT">选择题</option>
+            <option value="SELECT">单选题</option>
+            <option value="MULTI">多选题</option>
             <option value="JUDGE">判断题</option>
           </select>
         </div>
@@ -30,7 +31,7 @@
           <label>题目内容</label>
           <textarea v-model="form.content" rows="3"></textarea>
         </div>
-        <div v-if="form.type === 'SELECT'" class="form-group">
+        <div v-if="form.type === 'SELECT' || form.type === 'MULTI'" class="form-group">
           <label>选项（一行一个）</label>
           <textarea v-model="optionsText" rows="4" placeholder="选项A&#10;选项B&#10;选项C&#10;选项D"></textarea>
         </div>
@@ -44,6 +45,14 @@
               <option value="C">C</option>
               <option value="D">D</option>
             </select>
+          </div>
+          <div v-else-if="form.type === 'MULTI'">
+            <div class="multi-answer-checkboxes">
+              <label v-for="letter in ['A','B','C','D','E']" :key="letter" class="multi-checkbox">
+                <input type="checkbox" :value="letter" :checked="multiAnswer.includes(letter)" @change="toggleMultiAnswer(letter)" />
+                {{ letter }}
+              </label>
+            </div>
           </div>
           <div v-else>
             <select v-model="form.answer">
@@ -74,7 +83,7 @@
       <tbody>
         <tr v-for="q in questions" :key="q.id">
           <td>{{ q.id }}</td>
-          <td>{{ q.type === 'SELECT' ? '选择题' : '判断题' }}</td>
+          <td>{{ q.type === 'SELECT' ? '单选题' : q.type === 'MULTI' ? '多选题' : '判断题' }}</td>
           <td class="content-cell">{{ q.content }}</td>
           <td>{{ q.answer }}</td>
           <td class="actions">
@@ -100,11 +109,23 @@ const showAdd = ref(false)
 const editingQuestion = ref(null)
 const optionsText = ref('')
 
+const multiAnswer = ref([])
+
 const form = ref({
   type: 'SELECT',
   content: '',
   answer: ''
 })
+
+function toggleMultiAnswer(letter) {
+  const idx = multiAnswer.value.indexOf(letter)
+  if (idx > -1) {
+    multiAnswer.value.splice(idx, 1)
+  } else {
+    multiAnswer.value.push(letter)
+  }
+  form.value.answer = [...multiAnswer.value].sort().join(',')
+}
 
 onMounted(async () => {
   const res = await getSubjects()
@@ -118,6 +139,7 @@ watch(selectedSubjectId, () => {
 watch(() => form.value.type, () => {
   form.value.answer = ''
   optionsText.value = ''
+  multiAnswer.value = []
 })
 
 async function loadQuestions() {
@@ -131,6 +153,7 @@ function closeForm() {
   editingQuestion.value = null
   form.value = { type: 'SELECT', content: '', answer: '' }
   optionsText.value = ''
+  multiAnswer.value = []
 }
 
 function startEdit(q) {
@@ -140,7 +163,12 @@ function startEdit(q) {
     content: q.content,
     answer: q.answer
   }
-  if (q.type === 'SELECT' && q.options) {
+  if (q.type === 'MULTI') {
+    multiAnswer.value = q.answer ? q.answer.split(',') : []
+  } else {
+    multiAnswer.value = []
+  }
+  if ((q.type === 'SELECT' || q.type === 'MULTI') && q.options) {
     try {
       optionsText.value = JSON.parse(q.options).join('\n')
     } catch {
@@ -157,7 +185,7 @@ async function saveQuestion() {
     content: form.value.content,
     answer: form.value.answer
   }
-  if (form.value.type === 'SELECT') {
+  if (form.value.type === 'SELECT' || form.value.type === 'MULTI') {
     question.options = JSON.stringify(
       optionsText.value.split('\n').filter(s => s.trim())
     )
@@ -258,6 +286,8 @@ async function delQuestion(id) {
 }
 .save-btn { background: #409eff; color: #fff; }
 .cancel-btn { background: #f5f7fa; color: #606266; }
+.multi-answer-checkboxes { display: flex; gap: 15px; }
+.multi-checkbox { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 14px; }
 table {
   width: 100%;
   border-collapse: collapse;

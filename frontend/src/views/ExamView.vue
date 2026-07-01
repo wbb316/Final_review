@@ -11,7 +11,7 @@
     </div>
 
     <div v-else class="question-card">
-      <div class="question-type">{{ questions[currentIndex].type === 'SELECT' ? '选择题' : '判断题' }}</div>
+      <div class="question-type">{{ typeLabel }}</div>
       <div class="question-content">{{ questions[currentIndex].content }}</div>
 
       <!-- 选择题选项 -->
@@ -22,6 +22,20 @@
           class="option"
           :class="optionClass(idx)"
           @click="selectAnswer(String.fromCharCode(65 + idx))"
+        >
+          <span class="option-label">{{ String.fromCharCode(65 + idx) }}</span>
+          <span class="option-text">{{ opt }}</span>
+        </div>
+      </div>
+
+      <!-- 多选题选项 -->
+      <div v-else-if="questions[currentIndex].type === 'MULTI'" class="options">
+        <div
+          v-for="(opt, idx) in parsedOptions"
+          :key="idx"
+          class="option"
+          :class="optionClass(idx)"
+          @click="toggleMultiAnswer(String.fromCharCode(65 + idx))"
         >
           <span class="option-label">{{ String.fromCharCode(65 + idx) }}</span>
           <span class="option-text">{{ opt }}</span>
@@ -45,6 +59,15 @@
           <span class="option-label">错误</span>
         </div>
       </div>
+
+      <!-- 多选题确认按钮 -->
+      <button
+        v-if="questions[currentIndex].type === 'MULTI' && !answered && multiSelected.length > 0"
+        class="confirm-btn"
+        @click="confirmMultiAnswer"
+      >
+        确认答案（已选 {{ [...multiSelected].sort().join(", ") }}）
+      </button>
 
       <!-- 反馈 -->
       <div v-if="answered" class="feedback" :class="isCorrect ? 'correct' : 'wrong'">
@@ -73,11 +96,26 @@ const router = useRouter()
 const questions = ref([])
 const currentIndex = ref(0)
 const selectedAnswer = ref(null)
+const multiSelected = ref([])
 const answers = ref([])
 const answered = ref(false)
 
+const typeLabel = computed(() => {
+  const type = questions.value[currentIndex.value]?.type
+  if (type === 'SELECT') return '选择题'
+  if (type === 'MULTI') return '多选题'
+  return '判断题'
+})
+
 const isCorrect = computed(() => {
-  return selectedAnswer.value === questions.value[currentIndex.value]?.answer
+  const q = questions.value[currentIndex.value]
+  if (!q) return false
+  if (q.type === 'MULTI') {
+    const correct = q.answer.split(',').sort().join(',')
+    const selected = [...multiSelected.value].sort().join(',')
+    return correct === selected
+  }
+  return selectedAnswer.value === q.answer
 })
 
 const parsedOptions = computed(() => {
@@ -98,12 +136,49 @@ onMounted(async () => {
 })
 
 function optionClass(idx) {
-  if (!answered.value) return ''
   const letter = typeof idx === 'number' ? String.fromCharCode(65 + idx) : idx
   const q = questions.value[currentIndex.value]
-  if (letter === q.answer) return 'correct'
+  if (!q) return ''
+  // 多选题未确认时：显示选中状态
+  if (q.type === 'MULTI' && !answered.value) {
+    return multiSelected.value.includes(letter) ? 'selected' : ''
+  }
+  if (!answered.value) return ''
+  const correctAnswers = q.answer.split(',')
+  if (correctAnswers.includes(letter)) return 'correct'
+  if (q.type === 'MULTI') {
+    if (multiSelected.value.includes(letter) && !correctAnswers.includes(letter)) return 'wrong'
+    return 'disabled'
+  }
   if (letter === selectedAnswer.value && letter !== q.answer) return 'wrong'
   return 'disabled'
+}
+
+function toggleMultiAnswer(letter) {
+  if (answered.value) return
+  const idx = multiSelected.value.indexOf(letter)
+  if (idx > -1) {
+    multiSelected.value.splice(idx, 1)
+  } else {
+    multiSelected.value.push(letter)
+  }
+  multiSelected.value = [...multiSelected.value] // trigger reactivity
+}
+
+function confirmMultiAnswer() {
+  if (answered.value || multiSelected.value.length === 0) return
+  answered.value = true
+  const q = questions.value[currentIndex.value]
+  const answerStr = [...multiSelected.value].sort().join(',')
+  const isCorrect = q.answer.split(',').sort().join(',') === answerStr
+  answers.value.push({
+    questionId: q.id,
+    content: q.content,
+    type: q.type,
+    selected: answerStr,
+    correctAnswer: q.answer,
+    correct: isCorrect
+  })
 }
 
 function selectAnswer(answer) {
@@ -126,6 +201,7 @@ function goNext() {
     currentIndex.value++
     answered.value = false
     selectedAnswer.value = null
+    multiSelected.value = []
   } else {
     const correctCount = answers.value.filter(a => a.correct).length
     sessionStorage.setItem('examAnswers', JSON.stringify(answers.value))
@@ -215,9 +291,17 @@ function goNext() {
   cursor: pointer;
   transition: all 0.2s;
 }
-.option:hover:not(.correct):not(.wrong):not(.disabled) {
+.option:hover:not(.correct):not(.wrong):not(.disabled):not(.selected) {
   border-color: #409eff;
   background: #f5faff;
+}
+.option.selected {
+  border-color: #409eff;
+  background: #ecf5ff;
+}
+.option.selected .option-label {
+  background: #409eff;
+  color: #fff;
 }
 .option-label {
   width: 28px;
@@ -249,6 +333,21 @@ function goNext() {
 .option.disabled {
   opacity: 0.6;
   cursor: default;
+}
+.confirm-btn {
+  display: block;
+  width: 100%;
+  margin-top: 20px;
+  padding: 12px;
+  background: #e6a23c;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.confirm-btn:hover {
+  background: #cf9236;
 }
 .feedback {
   margin-top: 20px;

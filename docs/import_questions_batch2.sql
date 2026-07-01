@@ -1,0 +1,22 @@
+-- 第二批 20 道 SQL 题
+INSERT INTO question (subject_id, type, content, options, answer) VALUES
+(1, 'SELECT', '对表中数据进行删除的操作是( )。', '["DELETE", "UPDATE", "DROP", "ALTER"]', 'A'),
+(1, 'SELECT', '关于 SQL 语言，下列说法正确的是( )。', '["SQL 是非过程化的语言，用户无须指定存取路径", "SQL 采用的是面向记录的操作方式，以记录为单位进行操作", "数据控制功能不是 SQL 语言的功能之一", "SQL 作为嵌入式语言语法与独立的语言有较大差别"]', 'A'),
+(1, 'SELECT', '数据库中建立索引的目的是为了( )。', '["提高安全性", "加快存取速度", "加快建表速度", "节省存储空间"]', 'B'),
+(1, 'SELECT', '关于主键约束以下说法错误的是( )。', '["可以将包含多个字段的字段组合设置为主键", "允许空值的字段上可以定义主键约束", "一个表中只能设置一个主键约束", "允许空值的字段上不能定义主键约束"]', 'B'),
+(1, 'SELECT', '检索选修课程C2的学生中成绩最高的学生的学号。正确的 SELECT 语句是( )。', '["SELECT SNO FROM SC WHERE CNO=C2 AND GRADE NOT IN (SELECT GRADE FROM SC WHERE CNO=C2)", "SELECT SNO FROM SC WHERE CNO=C2 AND GRADE >= ALL (SELECT GRADE FROM SC WHERE CNO=C2)", "SELECT SNO FROM SC WHERE CNO=C2 AND GRADE >= (SELECT GRADE FROM SC WHERE CNO=C2)", "SELECT SNO FROM SC WHERE CNO=C2 AND GRADE IN (SELECT GRADE FROM SC WHERE CNO=C2)"]', 'B'),
+(1, 'SELECT', '删除 SC 表中所有的学生选课记录，代码正确的是( )。', '["DROP FROM SC", "DELETE ALL FROM SC", "DELETE FROM SC", "DROP ALL FROM SC"]', 'C'),
+(1, 'SELECT', '要查找选修课程名是COMPUTER的女学生姓名，将涉及到关系( )。', '["S, C, SC", "S, SC", "S", "SC, C"]', 'A'),
+(1, 'SELECT', '关于外键规则 on delete set null on update cascade，说法错误的是( )。', '["当删除编号为05的所有博客信息记录时，博客类型表中的类型号会被设置为空", "当修改编号为05的博客类型编号时，该类型的博客信息表中的记录的博客类型编号会被级联更新", "当删除编号为05的博客类型记录时，该类型的博客信息表中的记录的博客类型编号会被设置为空", "当修改编号为05的博客类型名称时，该类型的博客信息表中的记录的博客类型编号不变"]', 'A'),
+(1, 'SELECT', '关于列级CHECK和表级CHECK，说法不正确的是( )。', '["两条语句都是合法的", "前者定义了属性上的约束条件，后者定义了元组上的约束条件", "当 sum 属性改变时检查，上述两种 CHECK 约束都要被检查", "两条语句的约束效果不一样"]', 'D'),
+(1, 'SELECT', 'SQL 语言具有( )的功能。', '["数据定义、关系规范化、数据控制", "数据定义、数据操纵、数据控制", "关系规范化、数据操纵、数据控制", "数据定义、关系规范化、数据操纵"]', 'B'),
+(1, 'SELECT', '关于索引说法错误的是( )。', '["不能在经常更新的列上建索引", "带索引的表在数据库中需要更多的存储空间", "表中增加索引之后，更新操作需要更长的时间，因为需要对索引同时进行更新", "一个基本表上最多只能建立一个聚簇索引"]', 'A'),
+(1, 'SELECT', '在关系中的各元组的( )。', '["顺序不能任意排列，一定要按照输入的顺序排列", "顺序可以任意排列", "排列顺序不同，统计处理的结果就可能不同", "顺序一定要按照关键字字段值的顺序排列"]', 'B'),
+(1, 'SELECT', '要在表 S 中删除一个属性"年龄"，可选用的 SQL 语句是( )。', '["ALTER TABLE S delete Age", "ALTER TABLE S DROP Age", "UPDATE S drop Age", "DELETE Age from S"]', 'B'),
+(1, 'SELECT', '索引属于三级模式中的哪个模式( )。', '["模式", "存储模式", "外模式", "内模式"]', 'D'),
+(1, 'SELECT', '关于 UNIQUE 约束的叙述中不正确的是( )。', '["UNIQUE 约束中不允许出现空值", "系统为定义了 UNIQUE 约束的那些列建立唯一索引", "可以定义多个 UNIQUE 约束", "UNIQUE 用于保证列或列组合的值唯一性"]', 'A'),
+(1, 'SELECT', '若要在基本表 S 中增加一列 CN，可用( )。', '["ALTER TABLE S ALTER CN CHAR(8)", "ADD TABLE S CN CHAR(8)", "ALTER TABLE S ADD CN CHAR(8)", "ADD TABLE S ALTER CN CHAR(8)"]', 'C'),
+(1, 'SELECT', '删除李勇的选课信息，可用( )。', '["drop 李勇 from S", "delete 李勇 from S", "delete from S where sn=李勇", "drop from S where sn=李勇"]', 'C'),
+(1, 'SELECT', '把 p 表中的 weight 属性的默认值改为 10，错误的是( )。', '["alter table p alter weight set default 18", "alter table p modify column weight set default 18", "alter table p modify column weight int default 18"]', 'B'),
+(1, 'SELECT', '"年龄在 15 至 30 岁之间"，属于数据库系统的( )。', '["恢复功能", "安全性", "完整性", "并发控制"]', 'C'),
+(1, 'SELECT', '在创建视图时，with check option 选项会影响视图的什么操作( )。', '["查询", "更新", "删除", "插入"]', 'B');
