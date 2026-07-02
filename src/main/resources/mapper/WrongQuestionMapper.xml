@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itcast.final_review.mapper.WrongQuestionMapper">
+    <resultMap id="BaseResultMap" type="cn.itcast.final_review.entity.WrongQuestion">
+        <id property="id" column="id"/>
+        <result property="questionId" column="question_id"/>
+        <result property="subjectId" column="subject_id"/>
+        <result property="consecutiveCorrect" column="consecutive_correct"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="BaseResultMap">
+        SELECT id, question_id, subject_id, consecutive_correct, created_at, updated_at
+        FROM wrong_question
+        ORDER BY updated_at DESC
+    </select>
+
+    <select id="findByQuestionId" resultMap="BaseResultMap">
+        SELECT id, question_id, subject_id, consecutive_correct, created_at, updated_at
+        FROM wrong_question
+        WHERE question_id = #{questionId}
+    </select>
+
+    <select id="findBySubjectId" resultMap="BaseResultMap">
+        SELECT id, question_id, subject_id, consecutive_correct, created_at, updated_at
+        FROM wrong_question
+        WHERE subject_id = #{subjectId}
+        ORDER BY updated_at DESC
+    </select>
+
+    <select id="findAllWithQuestion" resultType="cn.itcast.final_review.entity.WrongQuestionVO">
+        SELECT wq.id, wq.question_id, wq.subject_id, wq.consecutive_correct,
+               q.type, q.content, q.options, q.answer, s.name AS subject_name
+        FROM wrong_question wq
+        LEFT JOIN question q ON wq.question_id = q.id
+        LEFT JOIN subject s ON wq.subject_id = s.id
+        ORDER BY wq.updated_at DESC
+    </select>
+
+    <select id="findBySubjectIdWithQuestion" resultType="cn.itcast.final_review.entity.WrongQuestionVO">
+        SELECT wq.id, wq.question_id, wq.subject_id, wq.consecutive_correct,
+               q.type, q.content, q.options, q.answer, s.name AS subject_name
+        FROM wrong_question wq
+        LEFT JOIN question q ON wq.question_id = q.id
+        LEFT JOIN subject s ON wq.subject_id = s.id
+        WHERE wq.subject_id = #{subjectId}
+        ORDER BY wq.updated_at DESC
+    </select>
+
+    <select id="countByQuestionId" resultType="long">
+        SELECT COUNT(*) FROM wrong_question WHERE question_id = #{questionId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO wrong_question (question_id, subject_id, consecutive_correct)
+        VALUES (#{questionId}, #{subjectId}, #{consecutiveCorrect})
+    </insert>
+
+    <update id="updateConsecutiveCorrect">
+        UPDATE wrong_question
+        SET consecutive_correct = #{consecutiveCorrect}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM wrong_question WHERE id = #{id}
+    </delete>
+</mapper>

@@ -1,13 +1,21 @@
 <template>
   <div class="exam">
     <header class="exam-header">
-      <router-link to="/" class="back-link">&larr; 返回首页</router-link>
+      <router-link to="/wrong-questions" class="back-link">&larr; 返回错题本</router-link>
       <span class="progress">第 {{ currentIndex + 1 }} / {{ questions.length }} 题</span>
     </header>
 
-    <div v-if="questions.length === 0" class="empty">
-      <p>该科目暂无题目，请先添加题目。</p>
-      <router-link to="/questions/manage" class="link">去添加题目</router-link>
+    <div v-if="loading" class="loading">加载中...</div>
+
+    <div v-else-if="finished" class="result-card">
+      <h2>练习完成！</h2>
+      <p class="result-summary">共练习 {{ questions.length }} 题，本次掌握 {{ masteredCount }} 题</p>
+      <router-link to="/wrong-questions" class="result-link">返回错题本</router-link>
+    </div>
+
+    <div v-else-if="questions.length === 0" class="empty">
+      <p>暂无错题，继续加油！</p>
+      <router-link to="/" class="link">返回首页</router-link>
     </div>
 
     <div v-else class="question-card">
@@ -85,21 +93,27 @@
         class="confirm-btn"
         @click="confirmMultiAnswer"
       >
-        确认答案（已选 {{ [...multiSelected].sort().join(", ") }}）
+        确认答案（已选 {{ [...multiSelected].sort().join(', ') }}）
       </button>
 
       <!-- 反馈 -->
       <div v-if="answered" class="feedback" :class="finalCorrect ? 'correct' : 'wrong'">
-        {{ finalCorrect ? '回答正确！' : `回答错误，正确答案是：${questions[currentIndex].answer}` }}
+        <template v-if="finalCorrect">
+          <template v-if="mastered">已掌握！&#10003;</template>
+          <template v-else>回答正确！已答对 {{ getCurrentLocalCount() }}/3</template>
+        </template>
+        <template v-else>
+          答错了，正确答案是：{{ questions[currentIndex].answer }}，重新开始计数
+        </template>
       </div>
 
-      <!-- 下一题 / 查看结果 -->
+      <!-- 下一题 / 完成 -->
       <button
         v-if="answered"
         class="next-btn"
         @click="goNext"
       >
-        {{ currentIndex < questions.length - 1 ? '下一题' : '查看结果' }}
+        {{ currentIndex < questions.length - 1 ? '下一题' : '完成练习' }}
       </button>
     </div>
   </div>
@@ -108,8 +122,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getRandomQuestions } from '../api/review.js'
-import { recordWrong } from '../api/wrongQuestion.js'
+import { getWrongQuestions, getWrongQuestionsBySubject, recordWrong, recordCorrect } from '../api/wrongQuestion.js'
 
 const route = useRoute()
 const router = useRouter()
@@ -121,6 +134,19 @@ const blankAnswer = ref('')
 const blankCorrect = ref(false)
 const answers = ref([])
 const answered = ref(false)
+const loading = ref(true)
+const finished = ref(false)
+const masteredCount = ref(0)
+const mastered = ref(false)
+
+// 本地跟踪每题连续答对次数（以 questionId 为 key）
+const localProgressMap = ref({})
+
+function getCurrentLocalCount() {
+  const q = questions.value[currentIndex.value]
+  if (!q) return 0
+  return localProgressMap.value[q.questionId] || 0
+}
 
 const typeLabel = computed(() => {
   const type = questions.value[currentIndex.value]?.type
@@ -160,17 +186,32 @@ const parsedOptions = computed(() => {
 })
 
 onMounted(async () => {
-  const subjectId = Number(route.params.subjectId)
-  const count = Number(route.params.count)
-  const res = await getRandomQuestions(subjectId, count)
-  questions.value = res.data
+  try {
+    const subjectId = route.query.subjectId
+    let res
+    if (subjectId) {
+      res = await getWrongQuestionsBySubject(subjectId)
+    } else {
+      res = await getWrongQuestions()
+    }
+    questions.value = res.data
+    // 初始化本地进度计数器
+    const map = {}
+    res.data.forEach(q => {
+      map[q.questionId] = q.consecutiveCorrect || 0
+    })
+    localProgressMap.value = map
+  } catch (e) {
+    console.error('加载错题失败', e)
+  } finally {
+    loading.value = false
+  }
 })
 
 function optionClass(idx) {
   const letter = typeof idx === 'number' ? String.fromCharCode(65 + idx) : idx
   const q = questions.value[currentIndex.value]
   if (!q) return ''
-  // 多选题未确认时：显示选中状态
   if (q.type === 'MULTI' && !answered.value) {
     return multiSelected.value.includes(letter) ? 'selected' : ''
   }
@@ -193,35 +234,51 @@ function toggleMultiAnswer(letter) {
   } else {
     multiSelected.value.push(letter)
   }
-  multiSelected.value = [...multiSelected.value] // trigger reactivity
+  multiSelected.value = [...multiSelected.value]
 }
 
-function confirmMultiAnswer() {
+async function confirmMultiAnswer() {
   if (answered.value || multiSelected.value.length === 0) return
   answered.value = true
   const q = questions.value[currentIndex.value]
   const answerStr = [...multiSelected.value].sort().join(',')
-  const isCorrect = q.answer.split(',').sort().join(',') === answerStr
-  if (!isCorrect) recordWrong(q.id, q.subjectId)
+  const correct = q.answer.split(',').sort().join(',') === answerStr
+  if (correct) {
+    const res = await recordCorrect(q.questionId)
+    mastered.value = res.data.mastered
+    localProgressMap.value[q.questionId]++
+    if (mastered.value) masteredCount.value++
+  } else {
+    localProgressMap.value[q.questionId] = 0
+    await recordWrong(q.questionId, q.subjectId)
+  }
   answers.value.push({
-    questionId: q.id,
+    questionId: q.questionId,
     content: q.content,
     type: q.type,
     selected: answerStr,
     correctAnswer: q.answer,
-    correct: isCorrect
+    correct
   })
 }
 
-function confirmBlankAnswer() {
+async function confirmBlankAnswer() {
   if (answered.value || !blankAnswer.value.trim()) return
   answered.value = true
   const q = questions.value[currentIndex.value]
   const userAnswer = blankAnswer.value.trim()
   blankCorrect.value = userAnswer === q.answer
-  if (!blankCorrect.value) recordWrong(q.id, q.subjectId)
+  if (blankCorrect.value) {
+    const res = await recordCorrect(q.questionId)
+    mastered.value = res.data.mastered
+    localProgressMap.value[q.questionId]++
+    if (mastered.value) masteredCount.value++
+  } else {
+    localProgressMap.value[q.questionId] = 0
+    await recordWrong(q.questionId, q.subjectId)
+  }
   answers.value.push({
-    questionId: q.id,
+    questionId: q.questionId,
     content: q.content,
     type: q.type,
     selected: userAnswer,
@@ -230,15 +287,23 @@ function confirmBlankAnswer() {
   })
 }
 
-function selectAnswer(answer) {
+async function selectAnswer(answer) {
   if (answered.value) return
   selectedAnswer.value = answer
   answered.value = true
   const q = questions.value[currentIndex.value]
   const correct = answer === q.answer
-  if (!correct) recordWrong(q.id, q.subjectId)
+  if (correct) {
+    const res = await recordCorrect(q.questionId)
+    mastered.value = res.data.mastered
+    localProgressMap.value[q.questionId]++
+    if (mastered.value) masteredCount.value++
+  } else {
+    localProgressMap.value[q.questionId] = 0
+    await recordWrong(q.questionId, q.subjectId)
+  }
   answers.value.push({
-    questionId: q.id,
+    questionId: q.questionId,
     content: q.content,
     type: q.type,
     selected: answer,
@@ -255,17 +320,9 @@ function goNext() {
     multiSelected.value = []
     blankAnswer.value = ''
     blankCorrect.value = false
+    mastered.value = false
   } else {
-    const correctCount = answers.value.filter(a => a.correct).length
-    sessionStorage.setItem('examAnswers', JSON.stringify(answers.value))
-    router.push({
-      name: 'Result',
-      query: {
-        total: questions.value.length,
-        correct: correctCount,
-        wrong: questions.value.length - correctCount
-      }
-    })
+    finished.value = true
   }
 }
 </script>
@@ -288,6 +345,12 @@ function goNext() {
 .progress {
   font-size: 16px;
   color: #666;
+}
+.loading {
+  text-align: center;
+  padding: 60px 0;
+  color: #999;
+  font-size: 16px;
 }
 .empty {
   text-align: center;
@@ -450,6 +513,35 @@ function goNext() {
   cursor: pointer;
 }
 .next-btn:hover {
+  background: #337ecc;
+}
+.result-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 40px 30px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+.result-card h2 {
+  font-size: 24px;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+.result-summary {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 24px;
+}
+.result-link {
+  display: inline-block;
+  padding: 10px 24px;
+  background: #409eff;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 15px;
+}
+.result-link:hover {
   background: #337ecc;
 }
 </style>
