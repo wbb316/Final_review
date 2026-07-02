@@ -25,6 +25,7 @@
             <option value="SELECT">单选题</option>
             <option value="MULTI">多选题</option>
             <option value="JUDGE">判断题</option>
+            <option value="BLANK">填空题</option>
           </select>
         </div>
         <div class="form-group">
@@ -34,6 +35,10 @@
         <div v-if="form.type === 'SELECT' || form.type === 'MULTI'" class="form-group">
           <label>选项（一行一个）</label>
           <textarea v-model="optionsText" rows="4" placeholder="选项A&#10;选项B&#10;选项C&#10;选项D"></textarea>
+        </div>
+        <div v-if="form.type === 'BLANK'" class="form-group">
+          <label>正确答案</label>
+          <textarea v-model="form.answer" rows="2" placeholder="输入正确答案，多个答案用|分隔"></textarea>
         </div>
         <div class="form-group">
           <label>正确答案</label>
@@ -54,7 +59,7 @@
               </label>
             </div>
           </div>
-          <div v-else>
+          <div v-else-if="form.type === 'JUDGE'">
             <select v-model="form.answer">
               <option value="">-- 请选择 --</option>
               <option value="正确">正确</option>
@@ -83,7 +88,7 @@
       <tbody>
         <tr v-for="q in questions" :key="q.id">
           <td>{{ q.id }}</td>
-          <td>{{ q.type === 'SELECT' ? '单选题' : q.type === 'MULTI' ? '多选题' : '判断题' }}</td>
+          <td>{{ q.type === 'SELECT' ? '单选题' : q.type === 'MULTI' ? '多选题' : q.type === 'BLANK' ? '填空题' : '判断题' }}</td>
           <td class="content-cell">{{ q.content }}</td>
           <td>{{ q.answer }}</td>
           <td class="actions">

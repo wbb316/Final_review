@@ -43,7 +43,7 @@
       </div>
 
       <!-- 判断题选项 -->
-      <div v-else class="options judge-options">
+      <div v-else-if="questions[currentIndex].type === 'JUDGE'" class="options judge-options">
         <div
           class="option"
           :class="optionClass('正确')"
@@ -60,6 +60,25 @@
         </div>
       </div>
 
+      <!-- 填空题 -->
+      <div v-else class="blank-section">
+        <textarea
+          v-model="blankAnswer"
+          class="blank-input"
+          rows="3"
+          :disabled="answered"
+          placeholder="请输入答案..."
+        ></textarea>
+        <button
+          v-if="!answered"
+          class="confirm-btn"
+          :disabled="!blankAnswer.trim()"
+          @click="confirmBlankAnswer"
+        >
+          确认答案
+        </button>
+      </div>
+
       <!-- 多选题确认按钮 -->
       <button
         v-if="questions[currentIndex].type === 'MULTI' && !answered && multiSelected.length > 0"
@@ -70,8 +89,8 @@
       </button>
 
       <!-- 反馈 -->
-      <div v-if="answered" class="feedback" :class="isCorrect ? 'correct' : 'wrong'">
-        {{ isCorrect ? '回答正确！' : `回答错误，正确答案是：${questions[currentIndex].answer}` }}
+      <div v-if="answered" class="feedback" :class="finalCorrect ? 'correct' : 'wrong'">
+        {{ finalCorrect ? '回答正确！' : `回答错误，正确答案是：${questions[currentIndex].answer}` }}
       </div>
 
       <!-- 下一题 / 查看结果 -->
@@ -97,6 +116,8 @@ const questions = ref([])
 const currentIndex = ref(0)
 const selectedAnswer = ref(null)
 const multiSelected = ref([])
+const blankAnswer = ref('')
+const blankCorrect = ref(false)
 const answers = ref([])
 const answered = ref(false)
 
@@ -104,6 +125,7 @@ const typeLabel = computed(() => {
   const type = questions.value[currentIndex.value]?.type
   if (type === 'SELECT') return '选择题'
   if (type === 'MULTI') return '多选题'
+  if (type === 'BLANK') return '填空题'
   return '判断题'
 })
 
@@ -115,7 +137,15 @@ const isCorrect = computed(() => {
     const selected = [...multiSelected.value].sort().join(',')
     return correct === selected
   }
+  if (q.type === 'BLANK') return blankCorrect.value
   return selectedAnswer.value === q.answer
+})
+
+const finalCorrect = computed(() => {
+  const q = questions.value[currentIndex.value]
+  if (!q) return false
+  if (q.type === 'BLANK') return blankCorrect.value
+  return isCorrect.value
 })
 
 const parsedOptions = computed(() => {
@@ -181,6 +211,22 @@ function confirmMultiAnswer() {
   })
 }
 
+function confirmBlankAnswer() {
+  if (answered.value || !blankAnswer.value.trim()) return
+  answered.value = true
+  const q = questions.value[currentIndex.value]
+  const userAnswer = blankAnswer.value.trim()
+  blankCorrect.value = userAnswer === q.answer
+  answers.value.push({
+    questionId: q.id,
+    content: q.content,
+    type: q.type,
+    selected: userAnswer,
+    correctAnswer: q.answer,
+    correct: blankCorrect.value
+  })
+}
+
 function selectAnswer(answer) {
   if (answered.value) return
   selectedAnswer.value = answer
@@ -202,6 +248,8 @@ function goNext() {
     answered.value = false
     selectedAnswer.value = null
     multiSelected.value = []
+    blankAnswer.value = ''
+    blankCorrect.value = false
   } else {
     const correctCount = answers.value.filter(a => a.correct).length
     sessionStorage.setItem('examAnswers', JSON.stringify(answers.value))
@@ -298,6 +346,27 @@ function goNext() {
 .option.selected {
   border-color: #409eff;
   background: #ecf5ff;
+}
+.blank-section {
+  margin-top: 20px;
+}
+.blank-input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  font-size: 16px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+.blank-input:focus {
+  border-color: #409eff;
+}
+.blank-input:disabled {
+  background: #f5f7fa;
+  color: #333;
 }
 .option.selected .option-label {
   background: #409eff;
