@@ -14,3 +14,15 @@ CREATE TABLE IF NOT EXISTS question (
     create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (subject_id) REFERENCES subject(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS wrong_question (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    question_id BIGINT NOT NULL,
+    subject_id BIGINT NOT NULL,
+    consecutive_correct INT DEFAULT 0 COMMENT '连续答对次数，达3自动移除',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (question_id) REFERENCES question(id) ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subject(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_question (question_id)
+);

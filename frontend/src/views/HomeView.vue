@@ -6,6 +6,8 @@
         <router-link to="/subjects/manage">科目管理</router-link>
         <span class="sep">|</span>
         <router-link to="/questions/manage">题目管理</router-link>
+        <span class="sep">|</span>
+        <router-link to="/wrong-questions">错题本</router-link>
       </div>
     </header>
 

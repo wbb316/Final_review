@@ -25,6 +25,16 @@ const routes = [
     path: '/questions/manage',
     name: 'QuestionManage',
     component: () => import('../views/QuestionManage.vue')
+  },
+  {
+    path: '/wrong-questions',
+    name: 'WrongQuestionList',
+    component: () => import('../views/WrongQuestionList.vue')
+  },
+  {
+    path: '/wrong-exam',
+    name: 'WrongExam',
+    component: () => import('../views/WrongExamView.vue')
   }
 ]
 
