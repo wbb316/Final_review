@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "features": [
+    {
+      "id": "feature-001",
+      "name": "错题本功能",
+      "status": "needs_review",
+      "summary": "考试答错自动收录，错题列表浏览，错题考试模式，连续答对3次自动移除",
+      "acceptanceCriteria": [
+        "Scenario: 考试答错自动加入错题本\nGiven 用户在普通考试模式下答题\nWhen 用户答错某道题\nThen 该题自动收录到错题本",
+        "Scenario: 错题列表展示\nGiven 用户有错题记录\nWhen 用户访问错题列表页\nThen 能看到按科目分组的错题及其连续答对进度",
+        "Scenario: 错题考试连续答对3次移除\nGiven 用户进入错题考试模式\nWhen 用户连续答对某道错题3次\nThen 该题从错题本自动移除",
+        "Scenario: 错题考试答错归零\nGiven 用户已连续答对某错题2次\nWhen 用户再次答错\nThen 连续答对计数器归零"
+      ],
+      "verification": "mvn compile + npm run build pass",
+      "attempts": 1,
+      "maxAttempts": 12
+    }
+  ],
+  "fixes": []
+}

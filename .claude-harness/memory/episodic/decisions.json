@@ -1,0 +1,27 @@
+{
+  "version": 3,
+  "maxEntries": 50,
+  "entries": [
+    {
+      "decision": "Created WrongQuestionVO for JOIN query returning combined question + wrong-question data",
+      "rationale": "Avoids N+1 query problem when returning wrong questions with their associated question data",
+      "impact": "Single query per endpoint, efficient data loading",
+      "feature": "feature-001",
+      "timestamp": "2026-07-03T10:00:00Z"
+    },
+    {
+      "decision": "Used localProgressMap ref in WrongExamView for per-question consecutive correct tracking",
+      "rationale": "Server-side consecutiveCorrect value is stale after first correct answer in same session; local map tracks incrementally",
+      "impact": "Accurate progress display during wrong exam session",
+      "feature": "feature-001",
+      "timestamp": "2026-07-03T10:00:00Z"
+    },
+    {
+      "decision": "Fire-and-forget recordWrong in regular ExamView",
+      "rationale": "Should not block UI for wrong answer recording during normal exams",
+      "impact": "Non-blocking UX, wrong answers still recorded",
+      "feature": "feature-001",
+      "timestamp": "2026-07-03T10:00:00Z"
+    }
+  ]
+}

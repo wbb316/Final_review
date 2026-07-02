@@ -1,0 +1,26 @@
+{
+  "version": 3,
+  "entries": [
+    {
+      "approach": "Full-stack implementation following existing patterns",
+      "feature": "feature-001",
+      "files": [
+        "src/main/resources/schema.sql",
+        "src/main/java/.../entity/WrongQuestion.java",
+        "src/main/java/.../entity/WrongQuestionVO.java",
+        "src/main/java/.../mapper/WrongQuestionMapper.java",
+        "src/main/resources/mapper/WrongQuestionMapper.xml",
+        "src/main/java/.../service/WrongQuestionService.java",
+        "src/main/java/.../controller/WrongQuestionController.java",
+        "frontend/src/api/wrongQuestion.js",
+        "frontend/src/views/ExamView.vue",
+        "frontend/src/views/HomeView.vue",
+        "frontend/src/router/index.js",
+        "frontend/src/views/WrongQuestionList.vue",
+        "frontend/src/views/WrongExamView.vue"
+      ],
+      "patterns": ["Constructor injection", "@Mapper + @RestController", "Lombok @Data", "MyBatis resultMap + useGeneratedKeys", "Vue 3 Composition API", "Lazy-loaded routes", "Scoped CSS with blue primary", "Axios named export API modules"],
+      "timestamp": "2026-07-03T10:00:00Z"
+    }
+  ]
+}
